@@ -1,5 +1,9 @@
-#!/Users/sampersand/.rbenv/shims/ruby -W0
-
+p global_variables - [:$VERBOSE, :$-v, :$-w, :$-W, :$DEBUG, :$-d, :$=, :$_, :$~, :$&, :$`, :$', :$+, :$1, :$LOAD_PATH, :$:, :$-I, :$LOADED_FEATURES, :$", :$stdin, :$stdout, :$>, :$stderr, :$<, :$!, :$@, :$., :$FILENAME, :$*, :$-a, :$-l, :$-p, :$$, :$-i, :$PROGRAM_NAME, :$0, :$?, :$/, :$-0, :$\, :$,, :$;, :$-F,]
+__END__
+$0 = Class.new{def to_str = "hi"}.new
+$0 = nil
+p $0
+__END__
 
 $q = 'hi'.freeze
 Ractor.new(name: 'one') {
