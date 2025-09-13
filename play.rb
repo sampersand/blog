@@ -1,3 +1,23 @@
+#!/Users/sampersand/.rbenv/shims/ruby
+
+Ractor.new {
+  # $. = 3
+  # $= = 9
+  # $LOAD_PATH = 9
+  # $LOADED_FEATURES = 9
+  # $< = 9
+  # $. = 9
+  # $FILENAME = 9
+  # $* = 9
+  p $0
+  p $-i
+  $-i = 'eys'
+}
+p ["start", $-i]
+sleep 0.4
+p ["after", $-i]
+
+__END__
 class Foo < RuntimeError
   # def set_backtrace(bt)
   #   @bt = bt
