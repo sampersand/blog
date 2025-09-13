@@ -1,9 +1,74 @@
+class Foo < RuntimeError
+  # def set_backtrace(bt)
+  #   @bt = bt
+  #   # p "called: #{bt}"
+  #   # @q = caller
+  #   # super @q
+  # end
+  # $x=0
+  # def backtrace
+  #   @bt
+  #   # p :s
+  #   # # if ($x+=1) <= 1
+  #   #   # @q
+  #   # # else
+  #   #   p 34
+  #   # # end
+  # end
+end
+
+begin
+  raise Foo, "oops", ['oh']
+rescue
+  # $!.set_backtrace [1, 2, 3]
+  $@ = Class.new(Array) {
+
+    Array.instance_methods.each do |iv|
+      eval "def #{iv}(...); p __method__; exit! 3; end"
+    end
+    (self.class.instance_methods - %i[new]).each do |iv|
+      eval "def self.#{iv}(...); p __method__; exit! 3; end"
+    end
+  }.new ['9', '3'] # [Class.new{def to_str = "!"}.new]
+
+  # p $@.class
+  # p $@
+  # p $@
+  # $@ = 123
+  # raise
+  raise
+end #rescue p ["backtrace:", $!, $@]
+__END__
+# $-I.replace [__dir__]
+
+# p load 'tmp.ignore', Object.new
+# p $-I
+# $-I.replace [].freeze
+$"[0].freeze
+# $".replace Array.new { Class.new {
+  # def to_str = "tmp.rb"
+# }.new]
+class << $:
+  (Array.instance_methods - [:inspect]).each do
+    eval "undef #{_1}"
+  rescue
+    p $!
+  end
+end
+p require __dir__ + '/tmp.rb'
+p require __dir__ + '/tmp.rb'
+p $"
+__END__
 #!ruby -W0
+
 class M < MatchData
 end
 "a" =~ /./
-p $~.class.instance_methods false
-p $~.last_match
+def $~.last_match; :yo end
+p $`
+p $+
+# p $~.class.instance_methods false
+# p $~.last_match
 __END__
 $_ = Class.new {
   def to_str = "woah"
