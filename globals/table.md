@@ -37,37 +37,37 @@ Note we use "Identical" instead of "aliases" as technically only `$:` has aliase
  -->
 
 
-| Name               | Identical    | Scope  | Read Type   | Write Type | Initial Value                                | Notes |
-|--------------------|--------------|--------|-----------  |------------|----------------------------------------------|-------|
-| `$VERBOSE`         | `$-v`, `$-w` | ractor | `bool?`     | `any`      | `false` (unless `-v`/`-w`/`-W` arg supplied) | Can be assigned any value, but uses truthiness |
-| `$-W`              |              | ractor | `(0\|1\|2)` | `any`      | `1` (unless `-v`/`-w`/`-W` supplied)         | Returns `2`, `1`, `0` for `$-v` value of `true`/`false`/`nil`, respectively |
-| `$DEBUG`           | `$-d`        | ractor | `any`       | `any`      | `false` (unless `-d`)                        | |
-| `$=`               |              | global | `false`     | `any` (W)  | `false`                                      | used to be used for case-insensitive string + regex comparsions, now always `false`. |
-| `$_`               |              | local  |             |            |                                              |       | <!--  `any`           | `nil` | "faux-global" (same scope as local variable) | | -->
-| `$~`               |              | local  |             |            |                                              |       | <!--  `MatchData?`    | `nil` | "faux-global"; same as `Regexp.last_match` | | -->
-| ``$` ``            |              | local  |             |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~.pre_match` | | -->
-| `$'`               |              | local  |             |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~.post_match` | | -->
-| `$+`               |              | local  |             |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~[-1]` | | -->
-| `$&`               |              | local  |             |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~[0]` | | -->
-| `$<digit>`         |              | local  |             |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$[<digit>]` | | -->
-| `$LOAD_PATH`       | `$:`, `$-I`  | global |             | read-only  |                                              | `$LOAD_PATH` amd `$-I` are actual aliases of `$:` |
-| `$LOADED_FEATURES` | `$"`         | global |             |            |                                              |       |
-| `$stdin`           |              | ractor |             |            |                                              |       |
-| `$stdout`          | `$>`         | ractor |             |            |                                              |       |
-| `$stderr`          |              | ractor |             |            |                                              |       |
-| `$<`               |              | global |             |            |                                              |       |
-| `$!`               |              | ractor |             |            |                                              |       |
-| `$@`               |              | ractor |             |            |                                              |       |
-| `$.`               |              | global |             |            |                                              |       |
-| `$FILENAME`        |              | global |             |            |                                              |       |
-| `$*`               |              | global |             |            |                                              |       |
-| `$-a`              |              | ractor |             |            |                                              |       |
-| `$-l`              |              | ractor |             |            |                                              |       |
-| `$-p`              |              | ractor |             |            |                                              |       |
-| `$$`               |              | ractor |             |            |                                              |       |
-| `$-i`              |              | ractor |             |            |                                              | ractor-local, unlike other ARGV ones? bug?       |
-| `$PROGRAM_NAME`    | `$0`         | ractor |             |            |                                              |       |
-| `$?`               |              | ractor |             |            |                                              |       |
+| Name               | Identical    | Scope  | Read Type          | Write Type | Initial Value                                | Notes |
+|--------------------|--------------|--------|--------------------|------------|----------------------------------------------|-------|
+| `$VERBOSE`         | `$-v`, `$-w` | ractor | `bool?`            | `any`      | `false` (unless `-v`/`-w`/`-W` arg supplied) | Can be assigned any value, but uses truthiness |
+| `$-W`              |              | ractor | `(0\|1\|2)`        | `any`      | `1` (unless `-v`/`-w`/`-W` supplied)         | Returns `2`, `1`, `0` for `$-v` value of `true`/`false`/`nil`, respectively |
+| `$DEBUG`           | `$-d`        | ractor | `any`              | `any`      | `false` (unless `-d`)                        | |
+| `$=`               |              | global | `false`            | `any` (W)  | `false`                                      | used to be used for case-insensitive string + regex comparsions, now always `false`. |
+| `$_`               |              | local  |                    |            |                                              |       | <!--  `any`           | `nil` | "faux-global" (same scope as local variable) | | -->
+| `$~`               |              | local  |                    |            |                                              |       | <!--  `MatchData?`    | `nil` | "faux-global"; same as `Regexp.last_match` | | -->
+| ``$` ``            |              | local  |                    |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~.pre_match` | | -->
+| `$'`               |              | local  |                    |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~.post_match` | | -->
+| `$+`               |              | local  |                    |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~[-1]` | | -->
+| `$&`               |              | local  |                    |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~[0]` | | -->
+| `$<digit>`         |              | local  |                    |            |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$[<digit>]` | | -->
+| `$LOAD_PATH`       | `$:`, `$-I`  | global |                    | read-only  |                                              | `$LOAD_PATH` amd `$-I` are actual aliases of `$:` |
+| `$LOADED_FEATURES` | `$"`         | global |                    |            |                                              |       |
+| `$stdin`           |              | ractor |                    |            |                                              |       |
+| `$stdout`          | `$>`         | ractor |                    |            |                                              |       |
+| `$stderr`          |              | ractor |                    |            |                                              |       |
+| `$<`               |              | global |                    |            |                                              | Only usage of C `rb_define_readonly_variable` lol |
+| `$!`               |              | ractor |                    |            |                                              |       |
+| `$@`               |              | ractor |                    |            |                                              |       |
+| `$.`               |              | global |                    |            |                                              |       |
+| `$FILENAME`        |              | global |                    |            |                                              |       |
+| `$*`               |              | global |                    |            |                                              |       |
+| `$-a`              |              | ractor | `bool`             | read-only  | `false` (unless `-a`)                        |       |
+| `$-l`              |              | ractor | `bool`             | read-only  | `false` (unless `-l`)                        |       |
+| `$-p`              |              | ractor | `bool`             | read-only  | `false` (unless `-p`)                        |       |
+| `$$`               |              | ractor | `Integer`          | read-only  | varies                                       |       |
+| `$-i`              |              | ractor |                    |            |                                              | ractor-local, unlike other ARGV ones? bug?       |
+| `$PROGRAM_NAME`    | `$0`         | ractor |                    |            |                                              |       |
+| `$?`               |              | ractor | `Process::Status?` | read-only  | `nil`                                        |       |
 
 Scope:
 - `global` is accessible from the main ractor
