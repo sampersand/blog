@@ -1,20 +1,28 @@
-#!/Users/sampersand/.rbenv/shims/ruby
+#!/Users/sampersand/.rbenv/shims/ruby -W0
 
-Ractor.new {
-  # $. = 3
-  # $= = 9
-  # $LOAD_PATH = 9
-  # $LOADED_FEATURES = 9
-  # $< = 9
-  # $. = 9
-  # $FILENAME = 9
-  # $* = 9
-  p $0
-  p $-i
-  $-i = 'eys'
+
+$q = 'hi'.freeze
+Ractor.new(name: 'one') {
+  p $q
+  $-i = "yas"
+  100.times do
+    $-i +=  '1'
+    p [1, $-i]
+    sleep 0.1
+  end
+
+  # p $-i
+}
+Ractor.new(name: "two") {
+  $-i += "here"
+  100.times do
+    $-i +=  '2'
+    p [2, $-i]
+    sleep 0.1
+  end
 }
 p ["start", $-i]
-sleep 0.4
+sleep 10
 p ["after", $-i]
 
 __END__

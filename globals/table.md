@@ -49,8 +49,8 @@ Note we use "Identical" instead of "aliases" as technically only `$:` has aliase
 | ``$` ``            |              | local  |                    | read-only  |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~.pre_match` | | -->
 | `$'`               |              | local  |                    | read-only  |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~.post_match` | | -->
 | `$+`               |              | local  |                    | read-only  |                                              |       | <!--  `String?`       | `nil` | "faux-global"; same as `$~[-1]` | | -->
-| `$<digit>`         |              | local  |                    | read-only  |                                              | |
-| `$1073741824`+     |              | local  | `nil` (W)          | read-only  |  `nil`                                       | (max size is arch-dependent, usually `$1073741823` though) |
+| `$1`-`$<max>`      |              | local  |                    | read-only  |                                              | |
+| `$<max+1>`-..      |              | local  | `nil` (W)          | read-only  |  `nil`                                       | (max size is arch-dependent, usually `1073741823` though) |
 | `$LOAD_PATH`       | `$:`, `$-I`  | global |                    | read-only  |                                              | `$LOAD_PATH` amd `$-I` are actual aliases of `$:` |
 | `$LOADED_FEATURES` | `$"`         | global |                    | read-only  |                                              |       |
 | `$stdin`           |              | ractor |                    |            |                                              |       |
@@ -65,8 +65,9 @@ Note we use "Identical" instead of "aliases" as technically only `$:` has aliase
 | `$-a`              |              | ractor | `bool`             | read-only  | `false` (unless `-a`)                        |       |
 | `$-l`              |              | ractor | `bool`             | read-only  | `false` (unless `-l`)                        |       |
 | `$-p`              |              | ractor | `bool`             | read-only  | `false` (unless `-p`)                        |       |
+<!-- proc info -->
 | `$$`               |              | ractor | `Integer`          | read-only  | varies                                       |       |
-| `$-i`              |              | ractor |                    |            |                                              | ractor-local, unlike other ARGV ones? bug?       |
+| `$-i`              |              | ractor |                    |            | `nil` (unless `-i`)                          | ractor-local, unlike other ARGV ones? bug?       |
 | `$PROGRAM_NAME`    | `$0`         | ractor |                    |            |                                              |       |
 | `$?`               |              | ractor | `Process::Status?` | read-only  | `nil`                                        |       |
 
