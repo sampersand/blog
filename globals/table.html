@@ -11,6 +11,7 @@
 	</style>
 </head>
 <body>
+	(todo: see if there's a different return value when _writing_ to gvars. ie for every var, is <tt>p ($var = foo)</tt> always <tt>foo</tt>?)
 	<table border="1">
 		<thead>
 			<tr>
@@ -25,13 +26,13 @@
 			</tr>
 		</thead>
 		<tbody>
+			<tr> <td colspan="8"> <strong>Debugging Variables</strong> </td> </tr>
 			<tr>
 				<td><tt>$VERBOSE</tt></td>
 				<td><tt>$-v</tt>, <tt>$-w</tt></td>
 				<td>ractor</td>
 				<td><tt>bool?</tt></td>
 				<td><tt>any</tt></td>
-				<td>?</td>
 				<td><tt>false</tt> (unless <tt>-v</tt>/<tt>-w</tt>/<tt>-W</tt> supplied)</td>
 				<td>Can be assigned any value, but uses truthiness of the value</td>
 			</tr>
@@ -41,7 +42,6 @@
 				<td>ractor</td>
 				<td><tt>(0 | 1 | 2)</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>1</tt> (unless <tt>-v</tt>/<tt>-w</tt>/<tt>-W</tt> supplied)</td>
 				<td>Returns <tt>2</tt>, <tt>1</tt>, <tt>0</tt> for <tt>$-v</tt> value of <tt>true</tt>/<tt>false</tt>/<tt>nil</tt>, respectively</td>
 			</tr>
@@ -51,42 +51,16 @@
 				<td>ractor</td>
 				<td><tt>any</tt></td>
 				<td><tt>any</tt></td>
-				<td>?</td>
 				<td><tt>false</tt> (unless <tt>-d</tt>)</td>
 				<td></td>
 			</tr>
-			<tr>
-				<td><tt>$=</tt></td>
-				<td></td>
-				<td>global</td>
-				<td><tt>false</tt></td>
-				<td><tt>any</tt> (W)</td>
-				<td>?</td>
-				<td><tt>false</tt></td>
-				<td>Used to be used for case-insensitive string + regex comparisons, now always <tt>false</tt>.</td>
-			</tr>
-			<tr>
-				<td><tt>$_</tt></td>
-				<td></td>
-				<td>local</td>
-				<td></td>
-				<td></td>
-				<td>?</td>
-				<td></td>
-				<td></td>
-			</tr>
-		<tr>
-		<td colspan="8">
-		<strong>Section 1</strong>
-		</td>
-		</tr>
+		<tr> <td colspan="8"> <strong>Regex Variables</strong> </td> </tr>
 			<tr>
 				<td><tt>$~</tt></td>
 				<td></td>
 				<td>local</td>
 				<td><tt>MatchData?</tt></td>
 				<td><tt>MatchData?</tt></td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td>Same as <tt>Regexp.last_match</tt></td>
 			</tr>
@@ -96,7 +70,6 @@
 				<td>local</td>
 				<td><tt>String?</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td>Same as <tt>$~[0]</tt></td>
 			</tr>
@@ -106,7 +79,6 @@
 				<td>local</td>
 				<td><tt>String?</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td>Same as <tt>$~.pre_match</tt></td>
 			</tr>
@@ -116,7 +88,6 @@
 				<td>local</td>
 				<td><tt>String?</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td>Same as <tt>$~.post_match</tt></td>
 			</tr>
@@ -126,7 +97,6 @@
 				<td>local</td>
 				<td><tt>String?</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td>Same as <tt>$~[-1]</tt></td>
 			</tr>
@@ -136,7 +106,6 @@
 				<td>local</td>
 				<td><tt>String?</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td>Same as <tt>$~[N]</tt></td>
 			</tr>
@@ -146,17 +115,55 @@
 				<td>local</td>
 				<td><tt>nil</tt> (W)</td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td>(max size is arch-dependent, usually <tt>1073741823</tt> though)</td>
 			</tr>
+			<tr>
+				<td><tt>$=</tt></td>
+				<td></td>
+				<td>global</td>
+				<td><tt>false</tt></td>
+				<td><tt>any</tt> (W)</td>
+				<td><tt>false</tt></td>
+				<td>Used to be used for case-insensitive string + regex comparisons, now always <tt>false</tt>.</td>
+			</tr>
+		<tr> <td colspan="8"> <strong>Exception Variables</strong> </td> </tr>
+			<tr>
+				<td><tt>$!</tt></td>
+				<td></td>
+				<td>ractor</td>
+				<td></td>
+				<td>read-only</td>
+				<td> <tt>nil</tt> </td>
+				<td> Will only ever be non-nil within a <tt>rescue</tt> block, or <tt>at_exit</tt>/<tt>END{}</tt> </td>
+			</tr>
+			<tr>
+				<td><tt>$@</tt></td>
+				<td></td>
+				<td>ractor</td>
+				<td><tt>String | Array[String] | Array[Thread::Backtrace::Location]</tt></td>
+				<td><tt>any</tt><a href="#fn1" id="ref1">[1]</a> </td>
+				<td> <tt>nil</tt> </td>
+				<td> Will only ever be non-nil within a <tt>rescue</tt> block, or <tt>at_exit</tt>/<tt>END{}</tt> </td>
+			</tr>
+		<tr> <td colspan="8"> <strong>ARGV Variables</strong> </td> </tr>
+			<tr>
+				<td><tt>$&lt;</tt></td>
+				<td></td>
+				<td>global</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>Identical to <tt>ARGV</tt> (lol, only usage of C <tt>rb_define_readonly_variable</tt>)</td>
+			</tr>
+
+		<tr> <td colspan="8"> <strong>Uncategorized</strong> </td> </tr>
 			<tr>
 				<td><tt>$LOAD_PATH</tt></td>
 				<td><tt>$:</tt>, <tt>$-I</tt></td>
 				<td>global</td>
 				<td></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td></td>
 				<td><tt>$LOAD_PATH</tt> and <tt>$-I</tt> are actual aliases of <tt>$:</tt></td>
 			</tr>
@@ -166,7 +173,6 @@
 				<td>global</td>
 				<td></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -176,17 +182,15 @@
 				<td>ractor</td>
 				<td></td>
 				<td></td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
 			<tr>
 				<td><tt>$stdout</tt></td>
-				<td><tt>$></tt></td>
+				<td><tt>$&gt;</tt></td>
 				<td>ractor</td>
-				<td> This is some text with a footnote.<a href="#fn1" id="ref1">[1]</a> </td>
+				<td> </td>
 				<td></td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -196,37 +200,6 @@
 				<td>ractor</td>
 				<td></td>
 				<td></td>
-				<td>?</td>
-				<td></td>
-				<td></td>
-			</tr>
-			<tr>
-				<td><tt>$<</tt></td>
-				<td></td>
-				<td>global</td>
-				<td></td>
-				<td></td>
-				<td>?</td>
-				<td></td>
-				<td>Only usage of C <tt>rb_define_readonly_variable</tt> lol</td>
-			</tr>
-			<tr>
-				<td><tt>$!</tt></td>
-				<td></td>
-				<td>ractor</td>
-				<td></td>
-				<td>read-only</td>
-				<td>?</td>
-				<td></td>
-				<td></td>
-			</tr>
-			<tr>
-				<td><tt>$@</tt></td>
-				<td></td>
-				<td>ractor</td>
-				<td><tt>String | Array[String] | Array[Thread::Backtrace::Location]</tt></td>
-				<td><tt>any</tt> This is some text with a footnote.<a href="#fn1" id="ref1">[1]</a> </td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -236,18 +209,15 @@
 				<td>global</td>
 				<td></td>
 				<td></td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
-
 			<tr>
 				<td><tt>$FILENAME</tt></td>
 				<td></td>
 				<td>global</td>
 				<td></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -257,7 +227,6 @@
 				<td>global</td>
 				<td></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -267,7 +236,6 @@
 				<td>ractor</td>
 				<td><tt>bool</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>false</tt> (unless <tt>-a</tt>)</td>
 				<td></td>
 			</tr>
@@ -277,7 +245,6 @@
 				<td>ractor</td>
 				<td><tt>bool</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>false</tt> (unless <tt>-l</tt>)</td>
 				<td></td>
 			</tr>
@@ -287,7 +254,6 @@
 				<td>ractor</td>
 				<td><tt>bool</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>false</tt> (unless <tt>-p</tt>)</td>
 				<td></td>
 			</tr>
@@ -297,7 +263,6 @@
 				<td>ractor</td>
 				<td><tt>Integer</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td>varies</td>
 				<td></td>
 			</tr>
@@ -307,7 +272,6 @@
 				<td>ractor</td>
 				<td><tt>String?</tt> (frozen)</td>
 				<td><tt>str | false?</tt></td>
-				<td>?</td>
 				<td><tt>nil</tt> (unless <tt>-i</tt>)</td>
 				<td>ractor-local, unlike other ARGV ones? bug?; must be c-string result if <tt>str</tt></td>
 			</tr>
@@ -317,7 +281,6 @@
 				<td>ractor</td>
 				<td><tt>String</tt> (frozen)</td>
 				<td><tt>string</tt></td>
-				<td>?</td>
 				<td>varies</td>
 				<td></td>
 			</tr>
@@ -327,7 +290,6 @@
 				<td>ractor</td>
 				<td><tt>Process::Status?</tt></td>
 				<td>read-only</td>
-				<td>?</td>
 				<td><tt>nil</tt></td>
 				<td></td>
 			</tr>
@@ -337,7 +299,6 @@
 				<td></td>
 				<td></td>
 				<td></td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -347,7 +308,6 @@
 				<td></td>
 				<td></td>
 				<td></td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -357,7 +317,6 @@
 				<td></td>
 				<td></td>
 				<td></td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -367,7 +326,6 @@
 				<td></td>
 				<td></td>
 				<td></td>
-				<td>?</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -377,9 +335,17 @@
 				<td>global</td>
 				<td></td>
 				<td></td>
-				<td>?</td>
 				<td><tt>(undefined)</tt></td>
 				<td>Only assigned with <tt>-a</tt></td>
+			</tr>
+			<tr>
+				<td><tt>$_</tt></td>
+				<td></td>
+				<td>local</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
 			</tr>
 
 		</tbody>
@@ -388,54 +354,12 @@
 <section id="footnotes">
   <ol>
     <li id="fn1">
-      This is the footnote content.
+			While technically <tt>any</tt>, all builtin exceptions require a type of <tt>String | Array[String] | Array[Thread::Backtrace::Location]</tt>. (Assigning to and reading from <tt>$@</tt>
+			is done via by calling the <tt>#set_backtrace(bt)</tt> and <tt>#backtrace()</tt> methods on whatever <tt>$!</tt> is, which means it can be overwritten by end-users; However, reading from <tt>$@</tt>,
+			even with an ovewritten <tt>backtrace</tt> method, always ensures the correct return type is done.)
       <a href="#ref1">↩</a>
     </li>
   </ol>
 </section>
-<!--
-| Name               | Identical    | Scope  | Read Type          | Write Type      | Write return value | | Initial Value                                | Notes |
-|--------------------|--------------|--------|--------------------|-----------------|---|-----------------------------------------------|-------|
-| `$VERBOSE`         | `$-v`, `$-w` | ractor | `bool?`            | `any`           | ? |  `false` (unless `-v`/`-w`/`-W` arg supplied) | Can be assigned any value, but uses truthiness |
-| `$-W`              |              | ractor | `(0 \| 1 \| 2)`    | read-only       | ? |  `1` (unless `-v`/`-w`/`-W` supplied)         | Returns `2`, `1`, `0` for `$-v` value of `true`/`false`/`nil`, respectively |
-| `$DEBUG`           | `$-d`        | ractor | `any`              | `any`           | ? |  `false` (unless `-d`)                        | |
-| `$=`               |              | global | `false`            | `any` (W)       | ? |  `false`                                      | used to be used for case-insensitive string + regex comparsions, now always `false`. |
-| `$_`               |              | local  |                    |                 | ? |                                               |       |
-| `$~`               |              | local  | `MatchData?`       | `MatchData?`    | ? |  `nil`                                        | Same as `Regexp.last_match` |
-| `$&`               |              | local  | `String?`          | read-only       | ? |  `nil`                                        | Same as `$~[0]` |
-| ``$` ``            |              | local  | `String?`          | read-only       | ? |  `nil`                                        | Same as `$~.pre_match` |
-| `$'`               |              | local  | `String?`          | read-only       | ? |  `nil`                                        | Same as `$~.post_match` |
-| `$+`               |              | local  | `String?`          | read-only       | ? |  `nil`                                        | Same as `$~[-1]` |
-| `$1`-`$<max>`      |              | local  | `String?`          | read-only       | ? |  `nil`                                        | Same as `$~[N]` |
-| `$<max+1>`-..      |              | local  | `nil` (W)          | read-only       | ? |  `nil`                                        | (max size is arch-dependent, usually `1073741823` though) |
-| `$LOAD_PATH`       | `$:`, `$-I`  | global |                    | read-only       | ? |                                               | `$LOAD_PATH` amd `$-I` are actual aliases of `$:` |
-| `$LOADED_FEATURES` | `$"`         | global |                    | read-only       | ? |                                               |       |
-| `$stdin`           |              | ractor |                    |                 | ? |                                               |       |
-| `$stdout`          | `$>`         | ractor |                    |                 | ? |                                               |       |
-| `$stderr`          |              | ractor |                    |                 | ? |                                               |       |
-| `$<`               |              | global |                    |                 | ? |                                               | Only usage of C `rb_define_readonly_variable` lol |
-| `$!`               |              | ractor |                    | read-only       | ? |                                               |       |
-| `$@`               |              | ractor | `String \| Array[String] \| Array[Thread::Backtrace::Location]` | `any`[^1]       | ? |                                             |       |
-| `$.`               |              | global |                    |                 | ? |                                               |       |
-| `$FILENAME`        |              | global |                    | read-only       | ? |                                               |       |
-| `$*`               |              | global |                    | read-only       | ? |                                               |       |
-| `$-a`              |              | ractor | `bool`             | read-only       | ? |  `false` (unless `-a`)                        |       |
-| `$-l`              |              | ractor | `bool`             | read-only       | ? |  `false` (unless `-l`)                        |       |
-| `$-p`              |              | ractor | `bool`             | read-only       | ? |  `false` (unless `-p`)                        |       |
-| `$$`               |              | ractor | `Integer`          | read-only       | ? |  varies                                       |       |
-| `$-i`              |              | ractor | `String?` (frozen) | `str \| false?` | ? |  `nil` (unless `-i`)                          | ractor-local, unlike other ARGV ones? bug?; must be c-string result if `str`       |
-| `$PROGRAM_NAME`    | `$0`         | ractor | `String` (frozen)  | `string`        | ? |  varies                                       |       |
-| `$?`               |              | ractor | `Process::Status?` | read-only       | ? |  `nil`                                        |       |
-| `$/`               | `$-0`        |        |                    |                 | ? |                                               |       |
-| `$\`               |              |        |                    |                 | ? |                                               |       |
-| `$,`               |              |        |                    |                 | ? |                                               |       |
-| `$;`               | `$-F`        |        |                    |                 | ? |                                               |       |
-| `$F`               |              | global |                    |                 | ? |  (undefined)                                  | Only assigned with `-a` |
-
-[^1]: While technically `any`, all builtin exceptions require a type of `String | Array[String] | Array[Thread::Backtrace::Location]`. (Assigning to and reading from `$@`
-is done via by calling the `#set_backtrace(bt)` and `#backtrace()` methods on whatever `$!` is, which means it can be overwritten by end-users; thus,
-Assigning to `$@`
-actually calls the method `set_backtrace` on whatever `$!` currently is, which can be overwritten by end-users.  `$@` is accessed, )
- -->
 </body>
 </html>
