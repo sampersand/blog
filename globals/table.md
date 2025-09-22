@@ -39,10 +39,11 @@ Note we use "Identical" instead of "aliases" as technically only `$:` has aliase
 
 | Name               | Identical    | Scope  | Read Type          | Write Type      | Initial Value                                 | Notes |
 |--------------------|--------------|--------|--------------------|-----------------|-----------------------------------------------|-------|
-| Exceptions         |
+| *Exceptions & Debugging* |
 | `$VERBOSE`         | `$-v`, `$-w` | ractor | `bool?`            | `any`           |  `false` (unless `-v`/`-w`/`-W` arg supplied) | Can be assigned any value, but uses truthiness |
 | `$-W`              |              | ractor | `(0 \| 1 \| 2)`    | read-only       |  `1` (unless `-v`/`-w`/`-W` supplied)         | Returns `2`, `1`, `0` for `$-v` value of `true`/`false`/`nil`, respectively |
 | `$DEBUG`           | `$-d`        | ractor | `any`              | `any`           |  `false` (unless `-d`)                        | |
+| *Regex* |
 | `$~`               |              | local  | `MatchData?`       | `MatchData?`    |  `nil`                                        | Same as `Regexp.last_match` |
 | `$&`               |              | local  | `String?`          | read-only       |  `nil`                                        | Same as `$~[0]` |
 | ``$` ``            |              | local  | `String?`          | read-only       |  `nil`                                        | Same as `$~.pre_match` |
@@ -51,28 +52,33 @@ Note we use "Identical" instead of "aliases" as technically only `$:` has aliase
 | `$1`-`$<max>`      |              | local  | `String?`          | read-only       |  `nil`                                        | Same as `$~[N]` |
 | `$<max+1>`-..      |              | local  | `nil` (W)          | read-only       |  `nil`                                        | (max size is arch-dependent, usually `1073741823` though) |
 | `$=`               |              | global | `false`            | `any` (W)       |  `false`                                      | used to be used for case-insensitive string + regex comparsions, now always `false`. |
+| *Exceptions* |
 | `$!`               |              | ractor |                    | read-only       |                                               |       |
 | `$@`               |              | ractor | `String \| Array[String] \| Array[Thread::Backtrace::Location]` | `any`[^1]       |                                             |       |
-| `$LOAD_PATH`       | `$:`, `$-I`  | global |                    | read-only       |                                               | `$LOAD_PATH` amd `$-I` are actual aliases of `$:` |
-| `$LOADED_FEATURES` | `$"`         | global |                    | read-only       |                                               |       |
-| `$stdin`           |              | ractor |                    |                 |                                               |       |
-| `$stdout`          | `$>`         | ractor |                    |                 |                                               |       |
-| `$stderr`          |              | ractor |                    |                 |                                               |       |
-| `$<`               |              | global |                    |                 |                                               | Identical to `ARGV` (Also, only usage of C `rb_define_readonly_variable` lol) |
+| *ARGF* |
+| `$<`               |              | global |                    |                 |                                               | Identical to `ARGF` (Also, only usage of C `rb_define_readonly_variable` lol) |
 | `$.`               |              | global |                    |                 |                                               |       |
 | `$FILENAME`        |              | global |                    | read-only       |                                               |       |
 | `$*`               |              | global |                    | read-only       |                                               |       |
-| `$-a`              |              | ractor | `bool`             | read-only       |  `false` (unless `-a`)                        |       |
-| `$-l`              |              | ractor | `bool`             | read-only       |  `false` (unless `-l`)                        |       |
-| `$-p`              |              | ractor | `bool`             | read-only       |  `false` (unless `-p`)                        |       |
-| `$$`               |              | ractor | `Integer`          | read-only       |  varies                                       |       |
 | `$-i`              |              | ractor | `String?` (frozen) | `str \| false?` |  `nil` (unless `-i`)                          | ractor-local, unlike other ARGV ones? bug?; must be c-string result if `str`       |
-| `$PROGRAM_NAME`    | `$0`         | ractor | `String` (frozen)  | `string`        |  varies                                       |       |
-| `$?`               |              | ractor | `Process::Status?` | read-only       |  `nil`                                        |       |
+| *I/O* |
+| `$stdin`           |              | ractor |                    |                 |                                               |       |
+| `$stdout`          | `$>`         | ractor |                    |                 |                                               |       |
+| `$stderr`          |              | ractor |                    |                 |                                               |       |
+| *Deprecated Control Vars* |
 | `$/`               | `$-0`        |        |                    |                 |                                               |       |
 | `$\`               |              |        |                    |                 |                                               |       |
 | `$,`               |              |        |                    |                 |                                               |       |
 | `$;`               | `$-F`        |        |                    |                 |                                               |       |
+| *MISC* |
+| `$LOAD_PATH`       | `$:`, `$-I`  | global |                    | read-only       |                                               | `$LOAD_PATH` amd `$-I` are actual aliases of `$:` |
+| `$LOADED_FEATURES` | `$"`         | global |                    | read-only       |                                               |       |
+| `$-a`              |              | ractor | `bool`             | read-only       |  `false` (unless `-a`)                        |       |
+| `$-l`              |              | ractor | `bool`             | read-only       |  `false` (unless `-l`)                        |       |
+| `$-p`              |              | ractor | `bool`             | read-only       |  `false` (unless `-p`)                        |       |
+| `$$`               |              | ractor | `Integer`          | read-only       |  varies                                       |       |
+| `$PROGRAM_NAME`    | `$0`         | ractor | `String` (frozen)  | `string`        |  varies                                       |       |
+| `$?`               |              | ractor | `Process::Status?` | read-only       |  `nil`                                        |       |
 | `$F`               |              | global |                    |                 |  (undefined)                                  | Only assigned with `-a` |
 | `$_`               |              | local  |                    |                 |                                               |       | <!--  `any`           | `nil` | "faux-global" (same scope as local variable) | | -->
 
