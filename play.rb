@@ -1,3 +1,10 @@
+alias $1 $a
+p RUBY_VERSION
+p $'
+__END__
+$> = Class.new{ def write(*) = nil; def inspect = "A" }.new
+STDOUT.puts $stdout.inspect
+__END__
 p global_variables - [:$VERBOSE, :$-v, :$-w, :$-W, :$DEBUG, :$-d, :$=, :$_, :$~, :$&, :$`, :$', :$+, :$1, :$LOAD_PATH, :$:, :$-I, :$LOADED_FEATURES, :$", :$stdin, :$stdout, :$>, :$stderr, :$<, :$!, :$@, :$., :$FILENAME, :$*, :$-a, :$-l, :$-p, :$$, :$-i, :$PROGRAM_NAME, :$0, :$?, :$/, :$-0, :$\, :$,, :$;, :$-F,]
 __END__
 $0 = Class.new{def to_str = "hi"}.new
