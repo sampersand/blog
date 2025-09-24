@@ -23,7 +23,7 @@ end
 ```
 If we instead used `@cached_posts ||= expensive_database_query`, we would perform the expensive database query every time, as `@cached_posts` is already `nil`.
 
-Note that you can replace `defined?` with `instance_variable_defined?` (although that's so much uglier). However, for global variables, this is the _only_ way to test whether a variable is set, or is set to `nil`.
+Note that you can replace `defined?` with `instance_variable_defined?`, although it's so much uglier. (However, for global variables, this is the _only_ way to test whether a variable is set, or is set to `nil`—there is no `global_variable_defined?`)
 
 ## `defined?` for optional features
 Another use for `defined?` is checking for whether features exist, and then performing actions based on it. One example I use quite frequently is checking for optimizations, and then enabling them if they're present:
@@ -187,14 +187,24 @@ p defined?(1 + 2)    #=> expression
 ```
 
 
-<!-- # Alternatives to `defined?`
+# Alternatives to `defined?`
 Most of the `defined?`s have alternatives, but some aren't all that pretty. Here's a table:
+
 | `defined?(what)` | Replacement |
-|------------------|
- -->
+|------------------|-------------|
+| `variable`       | `binding.local_variable_defined?` [^1] |
+| `@instance`      | `instance_variable_defined?` |
+| `@@class`        | `self.class.class_variable_defined?` |
+| `$global`        | **none** |
+| `::CONSTANT`     | `self.class.const_defined?` |
+| `meth(...)`      | `respond_to?` |
+| `foo.meth(...)`  | `foo.respond_to?` |
+
+[^1]: Almost the same—`Binding#local_variable_set` can be used to assign to local variables which are only accessible via `local_variable_{get,defined?}`.
+
 
 # Table
-Here's a complete table of all the possible `defined?` values:
+Here's a complete table of all the possible `defined?` values: (incomplete, WIP)
 
 
 | `defined?(what)` | Output                 | Alternatives | Notes |

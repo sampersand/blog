@@ -1,4 +1,70 @@
 #!~/.rbenv/shims/ruby
+
+CONST_O__ = :OUT
+CONST_O_S = :OUT
+CONST_OC_ = :OUT
+CONST_OCS = :OUT
+
+class CLASS
+  CONST_OC_ = :CLASS
+  CONST_OCS = :CLASS
+  CONST__C_ = :CLASS
+  CONST__CS = :CLASS
+
+  def meth
+    singleton_class.instance_eval <<~RUBY
+      const_set :CONST_OCS, :SING
+      const_set :CONST_O_S, :SING
+      const_set :CONST__CS, :SING
+      const_set :CONST___S, :SING
+    RUBY
+
+    %i[CONST_O__ CONST_O_S CONST_OC_ CONST_OCS CONST_OC_ CONST_OCS CONST__C_ CONST__CS CONST_OCS CONST_O_S CONST__CS CONST___S
+    ].each do |c|
+      p [c, eval("defined?(#{c})"), self.class.const_defined?(c), singleton_class.const_defined?(c), ]
+    end
+    # p eval "CONST___S"
+  end
+end
+
+c = CLASS.new
+
+p binding.local_variable_defined? :a
+p defined? a
+binding.local_variable_set :a, 34
+p binding.local_variable_defined? :a
+__END__
+CONST_A = :OUT
+CONST_B = :OUT
+CONST_C = :OUT
+class Foo
+  CONST_B = :FOO
+  CONST_C = :FOO
+
+  def bar
+    singleton_class.instance_eval <<~RUBY
+      CONST_A = :IN
+      CONST_B = :LOL
+    RUBY
+
+    p defined? @@cls
+    p singleton_class.class_variable_defined? :@@cls
+    p self.class#.class_variable_defined? :@@cls
+    p self.class.class_variables
+  end
+  def baz
+    self.class.class_variables
+    eval "p @@cls"
+  end
+end
+
+p TOPLEVEL_BINDING.class.instance_methods false #
+# const_set :Foo
+exit
+Foo.new.bar
+p Foo.new.baz
+__END__
+
 class Foo
   # def b = defined?(FOO)
   def f = 34
