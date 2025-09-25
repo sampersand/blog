@@ -1,5 +1,12 @@
-#!~/.rbenv/shims/ruby
+#!~/.rbenv/shims/ruby --disable=gems
 
+ObjectSpace.each_object do |o|
+  case o
+  when String, Class, Encoding, Module, Symbol then next
+  else p o
+  end
+end
+__END__
 CONST_O__ = :OUT
 CONST_O_S = :OUT
 CONST_OC_ = :OUT

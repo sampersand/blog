@@ -45,12 +45,12 @@ Note we use "Identical" instead of "aliases" as technically only `$:` has aliase
 | `$DEBUG`           | `$-d`        | ractor | `any`              | `any`           |  `false` (unless `-d`)                        | |
 | *Regex* |
 | `$~`               |              | local  | `MatchData?`       | `MatchData?`    |  `nil`                                        | Same as `Regexp.last_match` |
-| `$&`               |              | local  | `String?`          | (compiler error)       |  `nil`                                        | Same as `$~[0]` |
-| ``$` ``            |              | local  | `String?`          | (compiler error)       |  `nil`                                        | Same as `$~.pre_match` |
-| `$'`               |              | local  | `String?`          | (compiler error)       |  `nil`                                        | Same as `$~.post_match` |
-| `$+`               |              | local  | `String?`          | (compiler error)       |  `nil`                                        | Same as `$~[-1]` |
-| `$1`-`$<max>`      |              | local  | `String?`          | (compiler error)       |  `nil`                                        | Same as `$~[N]` |
-| `$<max+1>`-..      |              | local  | `nil` (W)          | (compiler error)       |  `nil`                                        | (max size is arch-dependent, usually `1073741823` though) |
+| `$&`               |              | local  | `String?`          | compiler error       |  `nil`                                        | Same as `$~[0]` |
+| ``$` ``            |              | local  | `String?`          | compiler error       |  `nil`                                        | Same as `$~.pre_match` |
+| `$'`               |              | local  | `String?`          | compiler error       |  `nil`                                        | Same as `$~.post_match` |
+| `$+`               |              | local  | `String?`          | compiler error       |  `nil`                                        | Same as `$~[-1]` |
+| `$1`-`$<max>`      |              | local  | `String?`          | compiler error       |  `nil`                                        | Same as `$~[N]` |
+| `$<max+1>`-..      |              | local  | `nil` (W)          | compiler error       |  `nil`                                        | (max size is arch-dependent, usually `1073741823` though) |
 | *Exceptions* |
 | `$!`               |              | ractor |                    | read-only       |                                               | Will only ever be non-nil within a rescue block, or `at_exit`/`END{}` |
 | `$@`               |              | ractor | `String \| Array[String] \| Array[Thread::Backtrace::Location]` | `any`[^1]       |                                             |  Will only ever be non-nil within a rescue block, or `at_exit`/`END{}` |

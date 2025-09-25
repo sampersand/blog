@@ -186,7 +186,6 @@ p defined?(__LINE__) #=> "expression"
 p defined?(1 + 2)    #=> expression
 ```
 
-
 # Alternatives to `defined?`
 Most of the `defined?`s have alternatives, but some aren't all that pretty. Here's a table:
 
