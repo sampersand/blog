@@ -1,3 +1,16 @@
+#!ruby -W0
+class Regexp
+  # def =~(x)
+  #   x < 3
+  # end
+end
+
+
+$_ = Class.new(BasicObject){def to_str = "lol"}.new
+if /(?<a>lol)/
+  puts 'hi', a
+end
+__END__
 alias $1 $a
 p RUBY_VERSION
 p $'
