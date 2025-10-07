@@ -1,3 +1,58 @@
+trace_var(:$foo) { p 1 }
+trace_var(:$foo) { p 2 }
+
+trace_var(:$bar) { p 3 }
+trace_var(:$bar) { p 4 }
+
+p untrace_var(:$foo) #=> [#<Proc:0x0000000100d87290 ...>, #<Proc:0x0000000100d87330 ...>]
+p untrace_var(:$bar) #=> [#<Proc:0x0000000100d87290 ...>, #<Proc:0x0000000100d87330 ...>]
+__END__
+trace_var :$foo, 'p 1'
+trace_var :$foo, 'p 2'
+trace_var :$foo, 'p 3'
+trace_var :$foo, 'p 4'
+
+begin
+  old = untrace_var(:$foo)
+  1
+ensure
+  old.reverse_each do |trace|
+    trace_var(:$foo, trace)
+  end
+end
+
+
+
+
+p untrace_var :$foo
+__END__
+trace_var :$LOAD_
+trace_var :$bar do p [:bar, $bar] end
+
+$bar = 3
+alias $foo $bar
+$foo = 9
+$foo = 34
+__END__
+p $foo
+$0 = "A"
+fail rescue 3
+
+$DEBUG = 1
+ASSIGNED_VARS = Hash.new(0)
+at_exit { pp ASSIGNED_VARS }
+
+def trace_var_incr(name)
+  trace_var(name) { ASSIGNED_VARS[name] += 1 }
+end
+
+trace_var_incr :$foo
+trace_var_incr :$bar
+trace_var_incr :$baz
+$foo = 3
+$bar = 3
+
+__END__
 trace_var :$bar, $baz = '$baz.replace $bar'
 $bar = 'p :hello'
 $bar = 'p :world'
