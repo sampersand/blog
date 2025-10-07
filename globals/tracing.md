@@ -40,8 +40,8 @@ module MyLogger
   @log_level = :info
 
   # Change `@log_level` whenever `$DEBUG` changes
-  trace_var :$DEBUG do |level|
-    @log_level = $DEBUG ? :trace : :info
+  trace_var :$DEBUG do |enabled|
+    @log_level = enabled ? :trace : :info
   end
 
   # ...
@@ -352,7 +352,7 @@ end
 ### There's no way to get the name of the traced variable
 Unfortunately, the the block/"`_Tracer`able" that's called is only ever provided a single argument; the value that the global variable is assigned. (The `String` version is even worse—you get passed nothing, since it's essentially `eval`'d!)
 
-Normally, this doesn't matter a ton. After all, you pass the name into `trace_var`, so you know what you're tracing! Unfortunately, this doesn't let you do a whole lot of metaprogramming, and limits the utility of passing a second argument directly to essentially just `untrace_var`ing (and dealing with Ruby's wonky pseudo-alias-global-variables like `$DEBUG` and `$-d`):
+Normally, this doesn't matter a ton. After all, you pass the name into `trace_var`, so you know what you're tracing! Unfortunately, this doesn't let you do a whole lot of metaprogramming, and limits the utility of passing a second argument directly to essentially just `untrace_var`ing (and reusing the same block multiple times to deal with Ruby's "aliased-but-not-actually" global variables like `$DEBUG` and `$-d`):
 ```ruby
 ASSIGNED_VARS = Hash.new(0)
 at_exit { pp ASSIGNED_VARS }
@@ -362,15 +362,15 @@ trace_var(:$foo) { ASSIGNED_VARS[:$foo] += 1 }
 trace_var(:$bar) { ASSIGNED_VARS[:$bar] += 1 }
 trace_var(:$baz) { ASSIGNED_VARS[:$baz] += 1 }
 
-# There's no real way to do this, as
-# the proc only takes the `value` not the name:
-ASSIGN_GVAR = proc do |name, value|
+# This doesn't work; the lambda only takes one argument,
+# the new value for the global:
+ASSIGN_GVAR = lambda do |name, value|
   ASSIGNED_VARS[name] += 1
 end
 trace_var :$foo, ASSIGN_GVAR
 trace_var :$bar, ASSIGN_GVAR
 ```
-While unfortunate, there are simple workarounds, such as:
+It's not too bad though, as there are simple workarounds, such as:s
 ```ruby
 def trace_var_incr(name)
   trace_var(name) { ASSIGNED_VARS[name] += 1 }
@@ -381,24 +381,20 @@ trace_var_incr :$baz
 ```
 
 ### It doesn't accept an array of traces
-If you want to completely stop tracing a variable, it's easy: just `untrace_var(:$foo)`. The problem is re-adding all the traces back:
+This one's a bit annoying: If you want to completely stop tracing a variable, it's easy. You just do `untrace_var(:$foo)`. The problem is re-adding all the traces back[^8]:
 ```ruby
-# Oh, let's stop tracing `$foo` for one method:
+# Stop tracing `$foo` for one method:
 begin
   old = untrace_var(:$foo)
   do_some_method
 ensure
-  # Works because `trace_var` accepts anything as
-  # the second argument, but...
+  # Won't work because `old` (an `Array`) doesn't define `.call`
   trace_var(:$foo, old)
 end
-
-# ... updating `$foo` later doesn't work, as `old` (an `Array)
-# doesn't define `.call`
-$foo = 3 # Fails with NoMethodError!
 ```
+[^8]: Technically, the `trace_var` line will work because it accepts `any` as its second argument. However, attempting to assign to `$foo` later will fail with a `NoMethodError`.
 
-The solution is to just use an `.each`:
+The solution is to just use a `.reverse_each`:
 ```ruby
 begin
   old = untrace_var(:$foo)
@@ -410,7 +406,7 @@ ensure
 end
 ```
 
-Why the `.reverse_each`? Well, `trace_var`s are actually stored internally using a linked list to keep track of the different traced functions[^8]. The upshot of this is that the return value of `untrace_var(:$global)` is actually in reverse order of how you declared them:
+Why the `.reverse_each`? Well, `trace_var`s are actually stored internally using a linked list to keep track of the different traced functions[^10]. The upshot of this is that the return value of `untrace_var(:$global)` is actually in reverse order of how you declared them:
 ```ruby
 trace_var(:$foo, 'p 1')
 trace_var(:$foo, 'p 2')
@@ -419,6 +415,9 @@ trace_var(:$foo, 'p 3')
 p untrace_var(:$foo) #=> ["p 3", "p 2", "p 1"]
 ```
 
-[^8]: I actually think this is smart: How often are you going to be assigning more than one trace to a variable? Probably not often. And, if you do, you're probably going to be removing them pretty quickly anyways.
+[^10]: I actually think this is smart: How often are you going to be assigning more than one trace to a variable? Probably not often. And, if you do, you're probably going to be removing them pretty quickly anyways.
 
 So, to insert them in the same order you extracted them, `.reverse_each` is needed.
+
+## Conclusion
+Whelp, that's about all I discovered when working with `trace_var` and `untrace_var`. I personally don't use them all too often, but I do love exploring odd edge cases in Ruby, and I hope you had fun (and learned something!)
