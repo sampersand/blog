@@ -1,4 +1,87 @@
+trace_var :$bar, $baz = '$baz.replace $bar'
+$bar = 'p :hello'
+$bar = 'p :world'
+$bar = 9
+__END__
+x = 3
+class Foo
+  Bar = :inside_foo
+  def doit
+    @instance = :hello
+    trace_var :$foo, '@instance = Bar; p x'
+    $foo = 3
+    @instance
+  end
+end
+
+Bar = :toplevel
+p Foo.new.doit
+p @instance
+
+__END__
 require 'blank'
+
+class Baz
+  Bar = :baz
+  def bar; $a = 3 end
+end
+class Foo
+  Bar = 3
+  def bar
+    trace_var :$a, "p Bar"
+    Baz.new.bar
+  end
+end
+
+    # trace_var :$a, "p Bar"
+Bar = 9
+p Foo.new.bar
+
+__END__
+trace_var :$a, 'p binding'
+p binding
+$a = 3
+p 2
+
+__END__
+$a = 3
+  untrace_var '$a', nil
+  # $a = 3
+
+trace_var to_str('a'), q=blank{def call(*) = ::Kernel.p("called!") ; def inspect = 'blank'} do end
+# p defined? $a
+p untrace_var :a, 'b'
+__END__
+$a = 3
+$b = 3
+p untrace_var to_str('$b'), q
+  # trace_var :a
+__END__
+trace_var(:$my_variable) do |var|
+  puts "here is where $my_variable was set: #{caller(1..1)}"
+end
+
+def foo
+  $my_variable = 10
+end
+
+def bar
+  foo
+end
+
+bar
+__END__
+trace_var :$BAR, q = 'puts "lol"'
+$BAR = 9
+q.replace 'puts "what"'
+$BAR = 19
+exit
+trace_var(:$FOO) do |new|
+  puts "Foo change: #$FOO #{new}"
+end
+$FOO = 34
+__END__
+
 $_ = :a # blank { def to_str = 'a' }
 print 34 if /a/
 __END__
