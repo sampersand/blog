@@ -4,8 +4,9 @@ trace_var(:$foo) { p 2 }
 trace_var(:$bar) { p 3 }
 trace_var(:$bar) { p 4 }
 
-p untrace_var(:$foo) #=> [#<Proc:0x0000000100d87290 ...>, #<Proc:0x0000000100d87330 ...>]
-p untrace_var(:$bar) #=> [#<Proc:0x0000000100d87290 ...>, #<Proc:0x0000000100d87330 ...>]
+p untrace_var(:$foo) #=> [#<Proc:0x0000000100d6b270 ...>, #<Proc:0x0000000100d6b310 ...>]
+p untrace_var(:$bar) #=> [#<Proc:0x0000000100d6b1f8 ...>, #<Proc:0x0000000100d6b248 ...>]
+
 __END__
 trace_var :$foo, 'p 1'
 trace_var :$foo, 'p 2'
