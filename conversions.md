@@ -16,7 +16,7 @@ There's quite a few different ways to convert between types. Let's go over them,
 ### `to_i` and `to_int`
 If you're reading this, you're already familiar with explicit conversions: `String#to_i` converts to `Integer`s, `Array#to_h` converts to a `Hash`, etc.
 
-You also probably already know about "implicit" conversions like `.to_int`. Implicit conversions, according to [the docs](https://docs.ruby-lang.org/en/master/implicit_conversion_rdoc.html), is: "Some Ruby methods accept one or more objects that can be either: (1) _`Of a given class_`, and so accepted as is. (2) _`Implicitly convertible`_ to that class, in which case the called method converts the object." The docs then go ahead and list out for examples:
+You also probably already know about "implicit" conversions like `.to_int`. Implicit conversions, according to [the docs](https://docs.ruby-lang.org/en/master/implicit_conversion_rdoc.html), is: "Some Ruby methods accept one or more objects that can be either: (1) _`Of a given class`_, and so accepted as is. (2) _`Implicitly convertible`_ to that class, in which case the called method converts the object." The docs then go ahead and list out for examples:
 
 - Array: `to_ary`
 - Hash: `to_hash`[^10]
@@ -82,9 +82,10 @@ Here's a handy dandy table:
 | Integer  | `to_int`, `to_i`       | ✅‡ | ✅ | ❌ |
 | Rational | `to_r`, **`to_int`**\* | ✅ | ✅ | ❌ |
 
-†: Accepts `[]` too
-‡: Accepts `.to_str`  in addition to `Strings`
-\*: Accepts `to_int` too, but that's a part of its `Rational(to_int, to_int)` signature, and not a part of its "conversions" signature
+- †: Accepts `[]` too
+- ‡: Accepts `.to_str`  in addition to `Strings`
+- \*: Accepts `to_int` too, but that's a part of its `Rational(to_int, to_int)` signature, and not a part of its "conversions" signature
+
 
 So what's an implicit conversion? As you can already see with the `Kernel` methods, they're a bit inconsistent about how they treat different conversion methods!
 
@@ -264,8 +265,8 @@ So far, we've explored `Kernel` methods, `<Class>.try_convert`s, as well as some
 | `Complex`  | `to_c`      |             | ❌                 | ✅ |
 | `Proc`     |             | `to_proc`   | ❌                 | ❌ |
 
-†: Only accepts `.to_h`
-‡: `Regexp#to_regexp` doesn't actually exist
+- †: Only accepts `.to_h`
+- ‡: `Regexp#to_regexp` doesn't actually exist
 
 
 ## `Float` and `.to_f`?
@@ -293,7 +294,7 @@ end
 p Math.cos MyFloat2.new #=> -0.9667981925794611
 ```
 
-Weird. I suspect this is because `Numeric` + `.to_f` is used as a proxy for "is a number-like type."[^41] So is `.to_f` explicit or implicit? I'd argue that it's probably close to an explicit one, _even though_ it's used implicitly all over the `Math` module (and in a few other places)
+Weird. I suspect this is because `Numeric` + `.to_f` is used as a proxy for "is a number-like type."[^41] So is `.to_f` explicit or implicit? I'd argue that it's probably close to an implicit one, as it's used implicitly all over the `Math` module (and in a few other places).
 
 [^41]: There's a whole blog post to be written about how `Numeric` interacts with its subclasses, and how to write custom subclasses of it that play nicely!
 
@@ -381,7 +382,27 @@ There's also a couple of honorable mentions:
 - `Object#to_enum` (an alias of `enum_for`) which creates `Enumerator`s for methods
 - `to_open`, which is used in `Kernel#open` to define "custom open methods"
 
-##
+## Table
+Here's a table for conversion methods:
+
+| Class      | Explicit    | Implicit    | Has `try_convert`? | Kernel method? |
+|------------|-------------|-------------|--------------------|----------------|
+| `Integer`  | `to_i`      | `to_int`    | ✅                 | ✅ |
+| `String`   | `to_s`      | `to_str`    | ✅                 | ✅ |
+| `Array`    | `to_a`      | `to_ary`    | ✅                 | ✅ |
+| `Hash`     | `to_h`      | `to_hash`   | ✅                 | ✅, but only accepts `.to_h` |
+| `Regexp`   |             | `to_regexp` | ✅, but isnt defined on regexp | ❌ |
+| `IO`       |             | `to_io`     | ✅                 | ❌ |
+| `Float`    |             | `to_f`      | ❌                 | ✅ |
+| `Rational` | `to_r`      |             | ❌                 | ✅ |
+| `Complex`  | `to_c`      |             | ❌                 | ✅ |
+| `Symbol`   | `to_sym`    |             | ❌                 | ❌ |
+|            |             | `to_path`   | ❌                 | ❌ |
+| `Range`    |             | (yes)       | ❌                 | ❌ |
+| `Set`      | `to_set`    |             | ❌                 | ❌ |
+| `Proc`     |             | `to_proc`   | ❌                 | ❌ |
+| `Time`     | `to_time`   |             | ❌                 | ❌ |
+
 
 
 <!--
@@ -449,22 +470,5 @@ warn "oops", category: MySymbol.new # (nothing)
 
 ## Table
 
-| Class      | Explicit    | Implicit    | Has `try_convert`? | Kernel method? |
-|------------|-------------|-------------|--------------------|----------------|
-| `Integer`  | `to_i`      | `to_int`    | ✅                 | ✅ |
-| `String`   | `to_s`      | `to_str`    | ✅                 | ✅ |
-| `Array`    | `to_a`      | `to_ary`    | ✅                 | ✅ |
-| `Hash`     | `to_h`      | `to_hash`   | ✅                 | ✅, but only accepts `.to_h` |
-| `Regexp`   |             | `to_regexp` | ✅, but isnt defined on regexp | ❌ |
-| `IO`       |             | `to_io`     | ✅                 | ❌ |
-| `Float`    |             | `to_f`      | ❌                 | ✅ |
-| `Rational` | `to_r`      |             | ❌                 | ✅ |
-| `Complex`  | `to_c`      |             | ❌                 | ✅ |
-| `Symbol`   | `to_sym`    |             | ❌                 | ❌ |
-|            |             | `to_path`   | ❌                 | ❌ |
-| `Range`    |             | (yes)       | ❌                 | ❌ |
-| `Set`      | `to_set`    |             | ❌                 | ❌ |
-| `Proc`     |             | `to_proc`   | ❌                 | ❌ |
-| `Time`     | `to_time`   |             | ❌                 | ❌ |
 Honorable mention: `to_open`, `to_enum`, `to_write_io`
 -->
