@@ -1,3 +1,28 @@
+require 'blankity'
+class MyAry def foto_ary = :A end
+
+def Array.try_convert(thing) = MyAry.new
+for a, b in [1]; p [a, b] end
+
+__END__
+class MyRange
+  def initialize(b, e, ee) @b, @e, @ee = b, e, ee end
+  def begin = @b
+  # def end = @e
+  def exclude_end? = @ee
+end
+
+class Range
+  undef exclude_end?
+  undef begin
+end
+
+p [1,2,3,4,5][Blankity::To.int(1){def <=>(o)=to_int<=>o.to_int}...Blankity::To.int(3)]
+__END__
+
+p [1, 2, 3, 4, 5][MyRange.new(1, 2, false)] #=> [2, 3]
+
+__END__
 trace_var(:$foo) { p 1 }
 trace_var(:$foo) { p 2 }
 
