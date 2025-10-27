@@ -28,22 +28,79 @@ Lastly, they handle `nil` differently: While `nil` defines all of the explicit c
 
 Here's a handy dandy table:
 
-| Method   | Conversions          | Parses Strings | Exceptions | Accepts `nil` |
-|:---------|----------------------|----------------|------------|---------------|
-| Array    | `to_ary`, `to_a`     | ❌ | ❌ | ✅ |
-| Hash     | **`to_hash`**        | ❌ | ❌ | ✅† |
-| String   | `to_str`, `to_s`     | ❌ | ❌ | ✅ |
-| Complex  | `to_c`               | ✅ | ✅ | ❌ |
-| Float    | `to_f`               | ✅ | ✅ | ❌ |
-| Integer  | `to_int`, `to_i`     | ✅‡ | ✅ | ❌ |
-| Rational | `to_r`, **`to_int`** | ✅ | ✅ | ❌ |
+| Method   | Conversions            | Parses Strings | Exceptions | Accepts `nil` |
+|:---------|------------------------|----------------|------------|---------------|
+| Array    | `to_ary`, `to_a`       | ❌ | ❌ | ✅ |
+| Hash     | **`to_hash`**          | ❌ | ❌ | ✅† |
+| String   | `to_str`, `to_s`       | ❌ | ❌ | ✅ |
+| Complex  | `to_c`                 | ✅ | ✅ | ❌ |
+| Float    | `to_f`                 | ✅ | ✅ | ❌ |
+| Integer  | `to_int`, `to_i`       | ✅‡ | ✅ | ❌ |
+| Rational | `to_r`, **`to_int`**\* | ✅ | ✅ | ❌ |
 
 †: Accepts `[]` too
 ‡: Accepts `.to_str`  in addition to `Strings`
+\*: Accepts `to_int` too, but that's a part of its `Rational(to_int, to_int)` signature, and not a part of its "conversions" signature
 
 So what's an implicit conversion? As you can already see with the `Kernel` methods, they're a bit inconsistent about how they treat different conversion methods!
 
 ## `try_convert`
+Let's next take a look at the `try_convert` methods:
+```ruby
+class MyI
+	def to_i = 1
+end
+
+class MyInt
+	def to_int = 2
+end
+
+p Integer.try_convert('12')      #=> nil
+p Integer.try_convert(MyI.new)   #=> nil
+p Integer.try_convert(MyInt.new) #=> 2
+```
+
+In modern Ruby, these are rarely used, and you'd be excused for never remembering they existed. Unlike their `Kernel` brethren, these methods have consistent signatures (they all accept a single argument, and return `nil` if the argument is doesn't define their conversion methods).
+
+| Class     | `try_convert` method |
+|:----------|----------------------|
+| `Integer` | `to_int`             |
+| `String`  | `to_str`             |
+| `Array`   | `to_ary`             |
+| `Hash`    | `to_hash`            |
+| `Regexp`  | `to_regexp`          |
+| `IO`      | `to_io`              |
+
+Most of these make sense—you got the traditional "quadfecta" of `Integer`, `String`, `Array`, and `Hash`—but there's two addition ones you've probably never used: `Regexp`'s `to_regexp` and `IO`'s `to_io`[^4].
+
+[^4]: You'll notice too that most of the `Numeric`-`Kernel`-method types—i.e. `Float`, `Rational`, and `Complex`—don't exist here. I think this makes sense for the latter two, but as we'll discuss later, I think `to_f` is actually an _implicit conversion_.
+
+While mostly underused by end-users, `IO`'s conversion is actually used quite heavily in the source code (beating out `to_hash` and `to_ary` by a long shot):
+```ruby
+class MyIO
+	def to_io = $stdout
+end
+
+# File.exist? can take a `.to_io`:
+p File.exist? MyIO.new #=> true
+
+# `Kernel#printf` can take an `to_io` as the first argument
+printf MyIO.new, 'hello %s', 'world' #=> hello world
+```
+The bizarre thing is that most of the other types with "implicit conversions" that are used by Ruby, `IO` doesn't have its own `Kernel` method. How inconsistent!
+
+However, the oddball of the lot is definitely `Regexp`: The `Regexp.try_convert` method, as well as `to_regexp`, is _only ever used_ in `Regexp.union`[^5]. That's it. But even more odd is that **Regexp does not define `to_regexp`**. What?? Every other an "implicit conversion" in the standard library—and even default gems like `JSON`—all define their conversion method. But `Regexp` doesn't. I think that alone is enough to disqualify "is converted in `try_convert`" as a valid contender.
+
+[^5]: I also think that this is another reason that `to_regexp` can't really be counted as an implicit conversion method: It's only ever used in one spot, even though there's a few places it could be used, like `String#=~`.
+
+So how about `try_convert` as a benchmark for what indicates "implicit conversion"? Well, those fall short too with `Regexp`'s `to_regexp` On top of that, as we'll get into next, there's actually a fewother "implicit conversions" that also very much break the mold.
+
+## `to_path`
+
+
+
+
+
 <!--
 
 The tradition idea is that implicit conversions are for types that "act like" the type they're implicitly convertible to: You create your own custom `Array` type, and then whenever something expects an `Array`, it can just call `.to_ary` on yours to convert it!
