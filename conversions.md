@@ -2,13 +2,57 @@
 
 Conversions in Ruby are a mess.
 
-Everyone who's used Ruby a little bit has run into the distinction of "explicit" conversions—for example, `to_i`, `to_s`, etc—and implicit conversions—`to_int`, `to_str`, etc.
+Everyone who's used Ruby a little bit has run into the distinction of "explicit" conversions—for example, `to_i`, `to_s`, etc—and implicit conversions—`to_int`, `to_str`, etc. But what about those top-level `Kernel` functions like `Integer()`, `Array()`, etc? And how about the oft-unused `try_convert` methods like `Hash.try_convert`? They're actually quite inconsistent in how they do conversions. (And don't get me started on how the syntax doesn't even respect it. (Actually, we will get started and visit it later!))
+
+So, let's dive in to the different ways to convert types in Ruby before converging on a definition for "implicit conversions"
+
+## `Kernel` methods
+
+Let's start off with the top-level `Kernel` methods: `Integer()`, `String()`, `Array()`, `Hash()`, `Float()`, `Rational()`, and `Complex()`. I won't be delving too deep into the uniques of each method (eg `Integer(string, base)`), as the point of this is to find a common definition for "implicit conversions"
+
+The basic form of all these methods is when given a sole argument, to attempt to call the appropriate conversion method (and if the type has an implicit one, that's called first): `Complex` attempts `.to_c`, `Rational` attempts `to_r`, `String` attempts `to_str` followed by `to_s`, etc.
+
+But _of course_, even this simple form has an oddity: `Kernel#Hash`. For some bizarre reason, it _never calls the explicit conversion method, `.to_h`_: It tried `.to_hash`, and if that doesn't exist raises a `TypeError`. My only guess as to why this oddity exists would be because for some reason Matz (or whomever wrote it) didn't want `Hash([['name', 'sam'], ['age', 27]])` to work. Yet, for some inexplicable reason, `Kernel#Hash` special cases an empty Array to return an empty Hash. This is so odd it bears repeating: `Hash([])` returns `{}`, but _every other array_ raises a `TypeError`. What??
+
+Next up, the "`Numeric` methods"—`Integer`, `Float`, `Rational`, and `Complex`—also have a form where they accept `String`, and then convert that string to the corresponding type. You've probably used `Integer('string')` as a way to throw exceptions when the string isn't a valid `Integer`; the same concept applies to the other types: `Float('1e3')`, `Rational('3/4')`, and `Complex('1+2i')`[^1].
+
+[^1]: Actually, `Rational` and `Complex` can take two arguments. While they normally and are numer+denom and real+imag, you can actually pass in any valid strings, and they'll be handled properly; `Rational('1/2', '2/3')` is the same as `(1/2r) / (2/3r)`, and `Complex('1+2i', '3+4i')` is `(1+2i) + (3+4i)*1i`.
+
+But these are _also_ odd. For example, every one of these parsing methods only works if the argument that's supplied is a direct `String`, _except_ for `Integer`, which accepts either `String` or types that define `.to_str`. How's that for inconsistent?.[^2]
+
+[^2]: They also all have their own ways of parsing, so eg `Integer('0d10')` (which is `10`) works, but `Rational('0d10')` doesn't.
+
+Lastly, they handle `nil` differently: While `nil` defines all of the explicit conversion methods that're used by the methods, the `Numeric` conversions explicitly check fro `nil` and raise `TypeError`, whereas `Array`/`Hash`[^3]/`String` return an "empty" version of their classes.
+
+[^3]: Which is all the odder given that `nil` doesn't define `.to_h`
+
+Here's a handy dandy table:
+
+| Method   | Conversions          | Parses Strings | Exceptions | Accepts `nil` |
+|:---------|----------------------|----------------|------------|---------------|
+| Array    | `to_ary`, `to_a`     | ❌ | ❌ | ✅ |
+| Hash     | **`to_hash`**        | ❌ | ❌ | ✅† |
+| String   | `to_str`, `to_s`     | ❌ | ❌ | ✅ |
+| Complex  | `to_c`               | ✅ | ✅ | ❌ |
+| Float    | `to_f`               | ✅ | ✅ | ❌ |
+| Integer  | `to_int`, `to_i`     | ✅‡ | ✅ | ❌ |
+| Rational | `to_r`, **`to_int`** | ✅ | ✅ | ❌ |
+
+†: Accepts `[]` too
+‡: Accepts `.to_str`  in addition to `Strings`
+
+So what's an implicit conversion? As you can already see with the `Kernel` methods, they're a bit inconsistent about how they treat different conversion methods!
+
+## `try_convert`
+<!--
 
 The tradition idea is that implicit conversions are for types that "act like" the type they're implicitly convertible to: You create your own custom `Array` type, and then whenever something expects an `Array`, it can just call `.to_ary` on yours to convert it!
 
-<!--Well, that's dandy, but why not call `.to_a`? Well, we'll talk about it. -->
+<! -- Well, that's dandy, but why not call `.to_a`? Well, we'll talk about it. -- a
 
 But, as we'll see, what exactly constitutes an "implicit conversion" is actually _quite vague_.
+
+
 
 ## Attempt 1: The "Official" Implicit Conversions
 
@@ -100,21 +144,21 @@ warn "oops", category: MySymbol.new # (nothing)
 
 | Class      | Explicit    | Implicit    | Has `try_convert`? | Kernel method? |
 |------------|-------------|-------------|--------------------|----------------|
-| `Integer`  | `to_i`      | `to_int`    | ✅ | ✅ |
-| `String`   | `to_s`      | `to_str`    | ✅ | ✅ |
-| `Array`    | `to_a`      | `to_ary`    | ✅ | ✅ |
-| `Hash`     | `to_h`      | `to_hash`   | ✅ | ✅, but only accepts `.to_h` |
+| `Integer`  | `to_i`      | `to_int`    | ✅                 | ✅ |
+| `String`   | `to_s`      | `to_str`    | ✅                 | ✅ |
+| `Array`    | `to_a`      | `to_ary`    | ✅                 | ✅ |
+| `Hash`     | `to_h`      | `to_hash`   | ✅                 | ✅, but only accepts `.to_h` |
 | `Regexp`   |             | `to_regexp` | ✅, but isnt defined on regexp | ❌ |
-| `IO`       |             | `to_io`     | ✅ | ❌ |
-| `Float`    |             | `to_f`      | ❌ | ✅ |
-| `Rational` | `to_r`      |             | ❌ | ✅ |
-| `Complex`  | `to_c`      |             | ❌ | ✅ |
-| `Symbol`   | `to_sym`    |             | ❌ | ❌ |
-|            |             | `to_path`   | ❌ | ❌ |
-| `Range`    |             | (yes)       | ❌ | ❌ |
-| `Set`      | `to_set`    |             | ❌ | ❌ |
-| `Proc`     |             | `to_proc`   | ❌ | ❌ |
-| `Time`     | `to_time`   |             | ❌ | ❌ |
+| `IO`       |             | `to_io`     | ✅                 | ❌ |
+| `Float`    |             | `to_f`      | ❌                 | ✅ |
+| `Rational` | `to_r`      |             | ❌                 | ✅ |
+| `Complex`  | `to_c`      |             | ❌                 | ✅ |
+| `Symbol`   | `to_sym`    |             | ❌                 | ❌ |
+|            |             | `to_path`   | ❌                 | ❌ |
+| `Range`    |             | (yes)       | ❌                 | ❌ |
+| `Set`      | `to_set`    |             | ❌                 | ❌ |
+| `Proc`     |             | `to_proc`   | ❌                 | ❌ |
+| `Time`     | `to_time`   |             | ❌                 | ❌ |
 Honorable mention: `to_open`, `to_enum`, `to_write_io`
 
 ## `coerce`
@@ -134,3 +178,4 @@ Kinda jank lol
 ## Other things to note
 - `Hash.[]` calls `.to_hash`; only hash does this, other types (like `Array` and `Set`) don't.
 - `Array.new` and `String.new` call their implicit functions, but `Hash.new` doesn't.
+ -->
