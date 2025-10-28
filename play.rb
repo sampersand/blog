@@ -1,8 +1,12 @@
 require 'blankity'
-class MyAry def foto_ary = :A end
+class MyAry def to_ary = [:A] end
 
 def Array.try_convert(thing) = MyAry.new
-for a, b in [1]; p [a, b] end
+
+for FOO in [1] do
+  p FOO
+end
+
 
 __END__
 class MyRange

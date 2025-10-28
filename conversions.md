@@ -105,7 +105,7 @@ p Integer.try_convert(MyI.new)   #=> nil
 p Integer.try_convert(MyInt.new) #=> 2
 ```
 
-In modern Ruby, these are rarely used, and you'd be excused for never remembering they existed. Unlike their `Kernel` brethren, these methods have consistent signatures (they all accept a single argument, and return `nil` if the argument is doesn't define their conversion methods).
+In modern Ruby, these are rarely used, and you'd be excused for never remembering they existed. Unlike their `Kernel` brethren, these methods have consistent signatures (they all accept a single argument, and return `nil` if the argument doesn't define their conversion methods).
 
 | Class     | `try_convert` method |
 |:----------|----------------------|
@@ -143,7 +143,7 @@ So how about `try_convert` as a benchmark for what indicates "implicit conversio
 ### Other Conversion Techniques
 There's a handful of other "conversion" methods that exist in the stdlib. Because they aren't universally-adopted, I don't consider them "true" conversion methods, but for completeness let's talk about them.
 
-First off, a couple of builtin types define a `[]` method (`Hash`, `Array`, `Fiber`, `Ractor`, and `Dir`), of which only `Array` and `Hash` are used to actually construct new instances. If you've never seen it before, `Array.[]` is essentially just a method form of the array literal: `[1, 2, 3]` is identical to `Array[1, 2, 3]` (albeit the literal is much more heavily optimized)[^32]. I suspect it was added to provide a "functional-programming-friendly" way to make arrays. But I've never needed it.
+First off, a couple of builtin types define a `[]` method (`Hash`, `Array`, `Fiber`, `Ractor`, `Thread`, and `Dir`), of which only `Array` and `Hash` are used to actually construct new instances. If you've never seen it before, `Array.[]` is essentially just a method form of the array literal: `[1, 2, 3]` is identical to `Array[1, 2, 3]` (albeit the literal is much more heavily optimized)[^32]. I suspect it was added to provide a "functional-programming-friendly" way to make arrays. But I've never needed it.
 
 Contrast this to `Hash.[]`, which is an absolute mess. It supports three separate forms of "conversion":
 1. If given one argument, which defines `.to_hash`, it returns that[^32].
@@ -178,7 +178,7 @@ Instead of using its constructor as _yet another conversion_, `Hash` uses the va
 
 Lastly, worth noting is `Numeric#coerce`, which is used when you want to convert arguments to a common type. It has pretty well-defined semantics, and doesn't make any use of the conversion methods, so we won't be talking about it any more.
 
-Well. That about sums up the builtin ways to convert things. Let's look at how they're used in the sytnax
+Well. That about sums up the builtin ways to convert things. Let's look at how they're used in the syntax
 
 ## Syntactic Usages of Conversions
 So far, we've explored `Kernel` methods, `<Class>.try_convert`s, and some other miscellaneous ways to convert things. Now let's see how they're used in different syntactic constructs.
@@ -265,14 +265,14 @@ So far, we've explored `Kernel` methods, `<Class>.try_convert`s, as well as some
 | `Complex`  | `to_c`      |             | ❌                 | ✅ |
 | `Proc`     |             | `to_proc`   | ❌                 | ❌ |
 
-- †: Only accepts `.to_h`
+- †: Doesn't accept `.to_h`
 - ‡: `Regexp#to_regexp` doesn't actually exist
 
 
 ## `Float` and `.to_f`?
 The first to break our mold is `Float`. Unlike the more useful `Integer`, `Float` doesn't have two conversions methods—a trait shared with its much less used brethren `Rational` and `Complex`; all it has is `to_f`.
 
-However, unlike the other conversions, most usages[^40] of `to_f` in the standard library expect the class that `.to_f` is called expect the type it's called on to _also_ subclass `Numeric`. That means the following won't work:
+However, unlike the other conversions, most usages[^40] of `to_f` in the standard library expect the class that `.to_f` is called on also to subclass Numeric. That means the following won't work:
 
 [^40]: Of notable exception is when it's used as a "timeout," eg in `Regexp.new`. Awkwardly, most of the time that timeouts are used (eg `Kernel#sleep`, `Thread::Mutex.wait`, and `IO#wait_readable` to name a few) they actually use something entirely separate: A [`Time::_Timeout`](https://github.com/ruby/rbs/blob/4482ed2c4a3faca78b3c332480b956e99ab9788c/core/time.rbs#L438-L456) which just expects a type to respond to a `.divmod(1)`. Inconsistent!
 
@@ -390,7 +390,7 @@ Here's a table for conversion methods:
 | `Integer`  | `to_i`      | `to_int`    | ✅                 | ✅ |
 | `String`   | `to_s`      | `to_str`    | ✅                 | ✅ |
 | `Array`    | `to_a`      | `to_ary`    | ✅                 | ✅ |
-| `Hash`     | `to_h`      | `to_hash`   | ✅                 | ✅, but only accepts `.to_h` |
+| `Hash`     | `to_h`      | `to_hash`   | ✅                 | ✅, but doesn't accept `.to_h` |
 | `Regexp`   |             | `to_regexp` | ✅, but isnt defined on regexp | ❌ |
 | `IO`       |             | `to_io`     | ✅                 | ❌ |
 | `Float`    |             | `to_f`      | ❌                 | ✅ |
@@ -403,72 +403,12 @@ Here's a table for conversion methods:
 | `Proc`     |             | `to_proc`   | ❌                 | ❌ |
 | `Time`     | `to_time`   |             | ❌                 | ❌ |
 
+Note: There's a handful of "default gems" like `Pathname` and `URI` that I've excluded, because I only wanted to do builtin types.
 
+## So, what is an implicit conversion?
 
-<!--
+This is hard.
 
-The tradition idea is that implicit conversions are for types that "act like" the type they're implicitly convertible to: You create your own custom `Array` type, and then whenever something expects an `Array`, it can just call `.to_ary` on yours to convert it!
+All of the `try_convert` methods use what're traditionally considered "implicit conversions": `to_{int,str,ary,hash,regexp,io}`. However, I'd argue that `to_path` is _very much_ an implicit conversion, even if it doesn't have a backing type. Likewise, I'd say that `to_proc` and `to_f` are _probably_ implicit conversions.
 
-<! -- Well, that's dandy, but why not call `.to_a`? Well, we'll talk about it. -- a
-
-But, as we'll see, what exactly constitutes an "implicit conversion" is actually _quite vague_.
-
-
-
-## Attempt 1: The "Official" Implicit Conversions
-
-The [docs](https://docs.ruby-lang.org/en/master/implicit_conversion_rdoc.html) states "Some Ruby methods accept one or more objects that can be either: (1) _`Of a given class_`, and so accepted as is. (2) _`Implicitly convertible`_ to that class, in which case the called method converts the object." and then goes on to list out four examples:
-
-- Array: `to_ary`
-- Hash: `to_hash`[^1]
-- Integer: `to_int`
-- String: `to_str`
-
-[^1]: This has _always_ bugged me—why is `Hash`'s implicit conversion spelled out? My guess is that because `.to_hsh` feels weird, but it's not _that_ weird.
-
-So there's our answer! Implicit conversions are exactly those four things! Done!
-
-... Ha, no. There's actually quite a few more types that have "implicit conversion methods" defined on them. Take for instance `IO`'s `.to_io`:
-```ruby
-class MyIO
-	def to_io = $stdout
-end
-
-p File.exist? MyIO.new #=> true
-```
-
-The `.to_io` conversion us actually used in _quite a few places_ in the standard library—far more than the `.to_hash` conversion. So that list of four conversions isn't quite enough.
-
-
-## Attempt 3: `try_convert`
-```ruby
-p String.try_convert 'hello'
-```
-
-
-
-
-Or `Symbol`'s `.to_sym`:
-```ruby
-class MySymbol
-	def to_sym = :deprecated
-end
-
-Warning[:deprecated] = true
-warn "oops", category: MySymbol.new #=> oops
-
-Warning[:deprecated] = false
-warn "oops", category: MySymbol.new # (nothing)
-```
-
-
-
-## `.try_convert`
-## Kernel methods
-## Usage in syntactic constructs
-## Honorable mentions
-
-## Table
-
-Honorable mention: `to_open`, `to_enum`, `to_write_io`
--->
+So my current definition for an "implicit conversion" is "there is none." It's too vague to nail down a concrete definition, even if there are some things that are obviously implicit.
