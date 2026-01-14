@@ -2,7 +2,7 @@
 
 Here's my tier list of global variables in Ruby, based on how useful they are IMO. It's ordered per tier.
 
-S: `$*`, `$1`/`$2`..., `$?`, `$0`, `$stdout`, `$stderr`
+S: `$1`/`$2`/…, `$*`, `$?`, `$0`, `$stdout`, `$stderr`
 A: `$!`, `$&`, `$'`, ``$` ``, `$.`, `$VERBOSE`, `$FILENAME`
 B: `$+`, `$LOAD_PATH`, `$_`, `$F`, `$stdin`
 C: `$$`, `$~`, `$<`, `$-I`, `$-v`, `$DEBUG`, `$PROGRAM_NAME`, `$LOADED_FEATURES`

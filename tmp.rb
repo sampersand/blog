@@ -1,5 +1,34 @@
 #!~/.rbenv/shims/ruby --disable=gems
-p [$-l,$-a,$-p]
+
+Thread.new { raise }
+x = Thread.new { 'do nothing' }
+
+$-d = true
+sleep 0.1 # make sure `e` also runs
+x.join #=> no exception
+
+__END__
+
+Thread.new {
+  $-d = true
+begin
+  x.join
+rescue
+  p "oops: #$!"
+end}.join
+exit
+
+Thread.new { sleep 10 }
+x = Thread.new { print "x"; Thread.pass; print "y"; print "z" }
+q = Thread.new { print "a"; raise; sleep(1); print "b"; print "c" }
+y = Thread.new { q.join; puts "<!!!>"; $stdout.flush }
+
+$-d = true
+x.join # Let thread x finish, thread a will be killed on exit.
+y.join rescue p [$!]
+
+#=> "axyz"
+
 __END__
 ObjectSpace.each_object do |o|
   case o
