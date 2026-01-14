@@ -1,5 +1,6 @@
 #!~/.rbenv/shims/ruby --disable=gems
-
+p [$-l,$-a,$-p]
+__END__
 ObjectSpace.each_object do |o|
   case o
   when String, Class, Encoding, Module, Symbol then next
