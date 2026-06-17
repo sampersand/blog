@@ -1,5 +1,10 @@
 #!~/.rbenv/shims/ruby --disable=gems
+$. = 1
+100.times do
+  END { p 1 } if true
+end
 
+__END__
 Thread.new { raise }
 x = Thread.new { 'do nothing' }
 
